@@ -18,6 +18,11 @@ class Auction extends BaseModel
 
     public function auctionBids(): HasMany
     {
-        return $this->hasMany(AuctionBids::class);
+        return $this->hasMany(AuctionBid::class);
+    }
+
+    public function scopeHighestBid()
+    {
+        return $this->auctionBids()->max('amount');
     }
 }

@@ -5,7 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AuctionBids>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AuctionBid>
  */
 class AuctionBidsFactory extends Factory
 {

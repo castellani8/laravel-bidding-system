@@ -5,44 +5,65 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AuctionResource\Pages;
 use App\Filament\Resources\AuctionResource\RelationManagers;
 use App\Models\Auction;
+use Faker\Provider\Text;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
-use Filament\Notifications\Notification;
+use Filament\Pages\SubNavigationPosition;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
-use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class   AuctionResource extends Resource
+class AuctionResource extends Resource
 {
     protected static ?string $model = Auction::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
             ->schema([
-                TextEntry::make('title')
-                    ->columnSpanFull()
-                    ->size(TextEntry\TextEntrySize::Large),
+                Section::make([
 
-                TextEntry::make('description')
-                    ->columnSpanFull()
-                    ->size(TextEntry\TextEntrySize::Large),
+                    TextEntry::make('title')
+                        ->columnSpanFull()
+                        ->size(TextEntry\TextEntrySize::Large),
+
+                    TextEntry::make('description')
+                        ->columnSpanFull()
+                        ->size(TextEntry\TextEntrySize::Large),
+
+                ]),
+
+                Section::make([
+                    TextEntry::make('start_price')
+                        ->label('Start price')
+                        ->prefix('$ '),
+
+                    TextEntry::make('status')
+                        ->formatStateUsing(fn($state) => match ($state) {
+                            'ACTIVE'   => 'Active',
+                            'INACTIVE' => 'Inactive',
+                            'FINISHED' => 'Finished',
+                        }),
+
+                    TextEntry::make('ends_at')
+                        ->dateTime(),
+
+                ])
+                ->columns(2),
 
                 ImageEntry::make('images')
-                    ->disk('local')
-                    ->visibility('private')
-                    ->size('500')
-                    ->openUrlInNewTab()
-                    ->grow()
-                    ->columnSpanFull(),
-
+                    ->columnSpanFull()
             ]);
     }
 
@@ -59,33 +80,29 @@ class   AuctionResource extends Resource
 
                 Forms\Components\FileUpload::make('images')
                     ->multiple()
-                    ->directory('auctions')
                     ->disk('local')
-                    ->visibility('private')
+                    ->directory('auction')
                     ->required()
                     ->columnSpanFull(),
 
                 Forms\Components\TextInput::make('start_price')
-                    ->mask(RawJs::make('$money($input)'))
-                    ->disabledOn('edit')
-                    ->required(),
+                    ->required()
+                    ->numeric(),
 
                 Forms\Components\Select::make('status')
                     ->options([
-                        'INACTIVE' => 'Inactive',
                         'ACTIVE'   => 'Active',
+                        'INACTIVE' => 'Inactive',
                         'FINISHED' => 'Finished',
                     ])
                     ->required(),
 
                 Forms\Components\DateTimePicker::make('ends_at')
-                    ->minDate(now()->addHour(2))
-                    ->disabledOn('edit')
                     ->required(),
 
-                Forms\Components\Hidden::make('created_by')
-                    ->disabledOn('edit')
-                    ->default(auth()->id()),
+                Forms\Components\TextInput::make('created_by')
+                    ->required()
+                    ->numeric(),
             ]);
     }
 
@@ -94,90 +111,37 @@ class   AuctionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->sortable(),
-
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('start_price')
-                    ->prefix('$ ')
                     ->numeric()
                     ->sortable(),
-
                 Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->color(fn($state) => match ($state) {
-                        'ACTIVE' => 'success',
-                        'FINISHED' => 'danger',
-                        default => 'warning',
-                    })
                     ->searchable(),
-
-//                Tables\Columns\TextColumn::make('createdBy.name')
-//                    ->numeric()
-//                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('highestBid')
-                    ->label('Highest BID')
-                    ->prefix('$ ')
-                    ->default(fn($record) => $record->auctionBids()->max('amount')),
-
-                Tables\Columns\TextColumn::make('BidCounter')
-                    ->label('Bids')
-                    ->default(fn($record) => $record->auctionBids()->count()),
-
                 Tables\Columns\TextColumn::make('ends_at')
                     ->dateTime()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('created_by')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
-            ->poll('1s')
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->slideOver(),
-
-                Tables\Actions\ViewAction::make()
-                    ->modalHeading(fn($record) => "View Auction Item #{$record->id}"),
-
-                Tables\Actions\DeleteAction::make(),
-
-                Tables\Actions\Action::make('bid')
-                    ->button()
-                    ->icon('heroicon-o-currency-dollar')
-                    ->color('success')
-                    ->label('Make Bid')
-                    ->size('xs')
-                    ->form([
-                        Forms\Components\TextInput::make('amount')
-                            ->mask(RawJs::make('$money($input)'))
-                            ->minValue(fn($record) => $record->auctionBids()->max('amount'))
-                            ->required(),
-
-                        Forms\Components\Checkbox::make('terms')
-                            ->label('I accept terms.')
-                    ])
-                    ->action(function ($data, $record) {
-                        $highestBid = $record->auctionBids()->max('amount');
-                        $minBid = max($highestBid ?? $record->start_price, $record->start_price);
-
-                        if ($data['amount'] <= $minBid) {
-                            return Notification::make()
-                                ->title('Invalid Bid')
-                                ->body('The bid must be higher than the current highest bid or starting price.')
-                                ->danger()
-                                ->send();
-                        }
-
-                        $record->auctionBids()->create([
-                            'amount' => $data['amount'],
-                            'user_id' => auth()->id(),
-                        ]);
-
-                        Notification::make()
-                            ->title('Bid Placed')
-                            ->body('Your bid has been successfully placed.')
-                            ->success()
-                            ->send();
-                    })
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -186,10 +150,30 @@ class   AuctionResource extends Resource
             ]);
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            Pages\ViewAuction::class,
+            Pages\EditAuction::class,
+            Pages\ManageAuction::class,
+        ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+//            Pages\ManageAuction::class
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageAuctions::route('/'),
+            'index' => Pages\ListAuctions::route('/'),
+            'create' => Pages\CreateAuction::route('/create'),
+            'view' => Pages\ViewAuction::route('/{record}'),
+            'edit' => Pages\EditAuction::route('/{record}/edit'),
+            'bids' => Pages\ManageAuction::route('/{record}/bids'),
         ];
     }
 }

@@ -16,8 +16,10 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->jsonb('images');
+            $table->jsonb('files')->nullable();
             $table->decimal('start_price');
             $table->string('status');
+            $table->date('starts_at')->nullable();
             $table->dateTime('ends_at');
             $table->foreignIdFor(\App\Models\User::class, 'created_by')->constrained();
             $table->timestamps();

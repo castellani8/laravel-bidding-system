@@ -17,11 +17,11 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-        $user->assignRole('super_admin');
+//        $user = User::factory()->create([
+//            'name' => 'Test User',
+//            'email' => 'test@example.com',
+//        ]);
+//        $user->assignRole('super_admin');
 
         Auction::factory(10)->create();
     }

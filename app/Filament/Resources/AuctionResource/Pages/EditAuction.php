@@ -4,17 +4,17 @@ namespace App\Filament\Resources\AuctionResource\Pages;
 
 use App\Filament\Resources\AuctionResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ManageRecords;
+use Filament\Resources\Pages\EditRecord;
 
-class ManageAuctions extends ManageRecords
+class EditAuction extends EditRecord
 {
     protected static string $resource = AuctionResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->slideOver(),
+            Actions\ViewAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 }

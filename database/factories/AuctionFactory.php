@@ -23,6 +23,7 @@ class AuctionFactory extends Factory
             'images'      => [fake()->imageUrl, fake()->imageUrl, fake()->imageUrl],
             'start_price' => fake()->randomFloat(2, 1, 1000),
             'status'      => fake()->randomElement(['ACTIVE', 'INACTIVE', 'FINISHED']),
+            'starts_at'   => fake()->dateTimeBetween('now', '+2 minutes'),
             'ends_at'     => fake()->dateTimeBetween('now', '+2 weeks'),
             'created_by'  => User::factory()->create()
         ];

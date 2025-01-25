@@ -41,6 +41,7 @@ class AppPanelProvider extends PanelProvider
             ])
             ->sidebarCollapsibleOnDesktop()
             ->spa()
+            ->databaseNotifications()
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,

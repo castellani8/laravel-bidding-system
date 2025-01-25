@@ -18,7 +18,7 @@ return new class extends Migration
             $table->jsonb('images');
             $table->jsonb('files')->nullable();
             $table->decimal('start_price', 15);
-            $table->string('status');
+            $table->string('status')->comment('INACTIVE, ACTIVE, FINISHED');
             $table->date('starts_at')->nullable();
             $table->dateTime('ends_at');
             $table->foreignIdFor(\App\Models\User::class, 'created_by')->constrained();

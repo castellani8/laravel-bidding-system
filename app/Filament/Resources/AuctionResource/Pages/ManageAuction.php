@@ -6,12 +6,16 @@ use App\Filament\Resources\AuctionResource;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Number;
+use Illuminate\Support\Str;
 
 class ManageAuction extends ManageRelatedRecords
 {
@@ -35,7 +39,7 @@ class ManageAuction extends ManageRelatedRecords
                     ->prefix('$')
                     ->minValue(fn($record) => ((float)$this->getOwnerRecord()->auctionBids()->max('amount')))
                     ->mask(RawJs::make('$money($input)'))
-                    ->helperText("Min value: {$this->getOwnerRecord()->auctionBids()->max('amount')}")
+                    ->helperText('Min value: '. Number::currency($this->getOwnerRecord()->auctionBids()->max('amount')))
                     ->stripCharacters(',')
                     ->numeric()
                     ->required(),
@@ -61,6 +65,9 @@ class ManageAuction extends ManageRelatedRecords
             ->filters([
                 //
             ])
+            ->modifyQueryUsing(function ($query) {
+                return $query->where('status', 'APPROVED');
+            })
             ->defaultSort('amount', 'desc')
             ->headerActions([
                 Tables\Actions\CreateAction::make()
@@ -69,8 +76,13 @@ class ManageAuction extends ManageRelatedRecords
                     ->label('Make a bid')
                     ->icon('heroicon-o-currency-dollar')
                     ->color('success')
-                    ->createAnother(false),
-//                Tables\Actions\AssociateAction::make(),
+                    ->createAnother(false)
+                    ->successNotification(
+                        Notification::make('bid-created')
+                            ->title('Your bid was created')
+                            ->success()
+                            ->body('Your bid was created and is pending approval.')
+                    ),
             ]);
     }
 }

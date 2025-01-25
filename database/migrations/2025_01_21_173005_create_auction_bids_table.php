@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignIdFor(\App\Models\User::class)->constrained()->onDelete('cascade');
             $table->foreignIdFor(\App\Models\Auction::class)->constrained()->onDelete('cascade');
             $table->decimal('amount', 12);
+            $table->string('status')->default('PENDING')->comment('PENDING, APPROVED, DECLINED');
 
             $table->timestamps();
             $table->softDeletes();

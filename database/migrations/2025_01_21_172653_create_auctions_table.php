@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description');
             $table->jsonb('images');
             $table->jsonb('files')->nullable();
-            $table->decimal('start_price');
+            $table->decimal('start_price', 15);
             $table->string('status');
             $table->date('starts_at')->nullable();
             $table->dateTime('ends_at');

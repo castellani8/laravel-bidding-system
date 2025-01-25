@@ -18,7 +18,7 @@ class AuctionFactory extends Factory
     public function definition(): array
     {
         return [
-            'title'       => fake()->title,
+            'title'       => fake()->name,
             'description' => fake()->text,
             'images'      => [fake()->imageUrl, fake()->imageUrl, fake()->imageUrl],
             'start_price' => fake()->randomFloat(2, 1, 1000),

@@ -33,9 +33,12 @@ class ManageAuction extends ManageRelatedRecords
                 Forms\Components\TextInput::make('amount')
                     ->columnSpanFull()
                     ->prefix('$')
+                    ->minValue(fn($record) => ((float)$this->getOwnerRecord()->auctionBids()->max('amount')))
                     ->mask(RawJs::make('$money($input)'))
-                    ->required()
-                    ->maxLength(255),
+                    ->helperText("Min value: {$this->getOwnerRecord()->auctionBids()->max('amount')}")
+                    ->stripCharacters(',')
+                    ->numeric()
+                    ->required(),
 
                 Forms\Components\Hidden::make('user_id')
                     ->default(auth()->id())
@@ -47,27 +50,27 @@ class ManageAuction extends ManageRelatedRecords
         return $table
             ->recordTitleAttribute('amount')
             ->columns([
-                Tables\Columns\TextColumn::make('amount'),
+                Tables\Columns\TextColumn::make('amount')
+                    ->money('USD'),
+
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Bidder'),
+
+                Tables\Columns\TextColumn::make('created_at')
             ])
             ->filters([
                 //
             ])
+            ->defaultSort('amount', 'desc')
             ->headerActions([
                 Tables\Actions\CreateAction::make()
+                    ->hidden(fn() => $this->getOwnerRecord()->status != 'ACTIVE')
                     ->requiresConfirmation()
+                    ->label('Make a bid')
+                    ->icon('heroicon-o-currency-dollar')
+                    ->color('success')
                     ->createAnother(false),
 //                Tables\Actions\AssociateAction::make(),
-            ])
-            ->actions([
-//                Tables\Actions\EditAction::make(),
-//                Tables\Actions\DissociateAction::make(),
-//                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-//                Tables\Actions\BulkActionGroup::make([
-//                    Tables\Actions\DissociateBulkAction::make(),
-//                    Tables\Actions\DeleteBulkAction::make(),
-//                ]),
             ]);
     }
 }

@@ -47,7 +47,7 @@ class AuctionResource extends Resource
                 Section::make([
                     TextEntry::make('start_price')
                         ->label('Start price')
-                        ->prefix('$ '),
+                        ->money('USD'),
 
                     TextEntry::make('status')
                         ->formatStateUsing(fn($state) => match ($state) {
@@ -112,41 +112,63 @@ class AuctionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('description')
+                    ->wrap()
+                    ->limit(25),
+
                 Tables\Columns\TextColumn::make('start_price')
+                    ->money('USD')
+                    ->prefix('$ ')
                     ->numeric()
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn($state) => match($state) {
+                        'ACTIVE' => 'success',
+                        'INACTIVE' => 'warning',
+                        'FINISHED' => 'danger'
+                    })
+                    ->sortable()
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('auctionBids_max')
+                    ->default('-')
+                    ->alignCenter()
+//                    ->max('auctionBids', 'amount')
+                    ->default(fn($record) => $record->auctionBids()->max('amount') ?? '-')
+                    ->money('USD')
+                    ->prefix('$ ')
+                    ->numeric(),
+
+                Tables\Columns\TextColumn::make('createdBy.name'),
+
                 Tables\Columns\TextColumn::make('ends_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_by')
+
+                Tables\Columns\TextColumn::make('createdBy.name')
                     ->numeric()
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
+            ->striped()
+            ->defaultSort('status', 'asc')
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+//                Tables\Actions\ViewAction::make(),
+//                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
             ]);
     }
 

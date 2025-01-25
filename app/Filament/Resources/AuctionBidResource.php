@@ -94,9 +94,9 @@ class AuctionBidResource extends Resource
                                     ->title("The bid {$record->id} has been declined.")
                                     ->body('A higher offer has been approved.')
                                     ->success()
-                                    ->broadcast($record->user)
+                                    ->broadcast($auctionBid->user)
                                     ->send()
-                                    ->sendToDatabase($record->user);
+                                    ->sendToDatabase($auctionBid->user);
                             }
 
                             Notification::make('auction-bid-approved')
@@ -105,6 +105,7 @@ class AuctionBidResource extends Resource
                                 ->broadcast($record->user)
                                 ->send()
                                 ->sendToDatabase($record->user);
+
                         } catch (\Exception $e) {
                             error_log("Error approving a bid: {$e->getMessage()}");
                             DB::rollBack();

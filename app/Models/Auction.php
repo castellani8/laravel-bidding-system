@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Auction extends BaseModel
 {
@@ -24,5 +25,14 @@ class Auction extends BaseModel
     public function scopeHighestBid()
     {
         return $this->auctionBids()->max('amount');
+    }
+
+
+    public function highestApprovedBid()
+    {
+        return $this->auctionBids()
+            ->where('status', 'APPROVED')
+            ->orderBy('amount', 'desc')
+            ->first();
     }
 }

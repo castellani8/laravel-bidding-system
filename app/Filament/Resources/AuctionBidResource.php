@@ -7,23 +7,98 @@ use App\Filament\Resources\AuctionBidResource\RelationManagers;
 use App\Models\AuctionBid;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Number;
 
 class AuctionBidResource extends Resource
 {
     protected static ?string $model = AuctionBid::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-arrow-trending-up';
 
-    protected static ?string $navigationLabel = 'Bids';
+    protected static ?string $navigationLabel = 'Approve/Decline Bids';
 
     protected static ?int $navigationSort = 2;
+
+    protected static function goTo(string $link, string $label, ?string $tooltip = '')
+    {
+        return new HtmlString(Blade::render('filament::components.link', [
+            'color' => 'primary',
+            'tooltip' => $tooltip,
+            'href' => $link,
+            'target' => '_blank',
+            'slot' => $label,
+            'icon' => 'heroicon-o-arrow-top-right-on-square',
+        ]));
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make([
+                    TextEntry::make('auction.title')
+                        ->label('Auction')
+                        ->formatStateUsing(function ($record, $state) {
+                                if(empty($state)) {
+                                    return '';
+                                }
+
+                                return self::goTo(
+                                    link: AuctionResource::getUrl()."/{$record->auction->id}",
+                                    label: $state
+                                );
+                        }),
+
+                    TextEntry::make('amount')
+                        ->label('Amount')
+                        ->money('USD'),
+
+                    TextEntry::make('status')
+                        ->badge()
+                        ->color(fn($state) => match ($state) {
+                            'PENDING'  => 'warning',
+                            'APPROVED' => 'success',
+                            'DECLINED' => 'danger',
+                        })
+                        ->formatStateUsing(fn($state) => match ($state) {
+                            'PENDING'  => 'Pending',
+                            'APPROVED' => 'Approved',
+                            'DECLINED' => 'Declined',
+                        }),
+
+                ]),
+                Section::make([
+                    TextEntry::make('user.name')
+                        ->label('User'),
+//                        ->formatStateUsing(function ($record, $state) {
+//                            if(empty($state)) {
+//                                return '';
+//                            }
+//
+//                            return self::goTo(
+//                                link: AuctionResource::getUrl()."/{$record->auction->id}",
+//                                label: $state
+//                            );
+//                        }),
+
+                    TextEntry::make('user.created_at')
+                        ->label('User created at')
+                ])
+                ->columns(2),
+            ]);
+    }
 
     public static function table(Table $table): Table
     {
@@ -33,9 +108,19 @@ class AuctionBidResource extends Resource
                     ->numeric()
                     ->sortable(),
 
-//                @todo make go to
                 Tables\Columns\TextColumn::make('auction.title')
-                    ->numeric()
+                    ->label('Auction')
+                    ->iconColor('primary')
+                    ->formatStateUsing(function ($record, $state) {
+                        if(empty($state)) {
+                            return '';
+                        }
+
+                        return self::goTo(
+                            link: AuctionResource::getUrl()."/{$record->auction->id}",
+                            label: $state
+                        );
+                    })
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('amount')
@@ -81,9 +166,10 @@ class AuctionBidResource extends Resource
                             $record->save();
 
                             $auctionBids = AuctionBid::query()
+                                ->where('id', '!=', $record->id)
                                 ->where('auction_id', $record->auction->id)
                                 ->where('amount', '<=', $record->amount)
-                                ->where('status', 'PENDING')
+                                ->whereIn('status', ['PENDING', 'APPROVED'])
                                 ->get();
 
                             foreach ($auctionBids as $auctionBid) {
@@ -92,7 +178,7 @@ class AuctionBidResource extends Resource
 
                                 Notification::make('auction-bid-declined')
                                     ->title("The bid {$record->id} has been declined.")
-                                    ->body('A higher offer has been approved.')
+                                    ->body('A higher offer has been approved: $'. Number::currency($record->amount))
                                     ->success()
                                     ->broadcast($auctionBid->user)
                                     ->send()
@@ -131,13 +217,6 @@ class AuctionBidResource extends Resource
                             ->send()
                             ->sendToDatabase($record->user);
                     }),
-
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

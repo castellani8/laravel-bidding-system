@@ -10,7 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Auction extends BaseModel
 {
-    protected $casts = ['images' => 'array'];
+    protected $casts = [
+        'images'  => 'array',
+        'ends_at' => 'datetime',
+    ];
 
     public function createdBy(): BelongsTo
     {
@@ -22,11 +25,10 @@ class Auction extends BaseModel
         return $this->hasMany(AuctionBid::class);
     }
 
-    public function scopeHighestBid()
+    public function bids(): HasMany
     {
-        return $this->auctionBids()->max('amount');
+        return $this->hasMany(AuctionBid::class);
     }
-
 
     public function highestApprovedBid()
     {
@@ -34,5 +36,10 @@ class Auction extends BaseModel
             ->where('status', 'APPROVED')
             ->orderBy('amount', 'desc')
             ->first();
+    }
+
+    public function highestApprovedBidAmount()
+    {
+        return $this->highestApprovedBid()?->amount ?? 0;
     }
 }

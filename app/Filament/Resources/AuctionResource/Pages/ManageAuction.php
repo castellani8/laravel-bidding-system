@@ -37,9 +37,11 @@ class ManageAuction extends ManageRelatedRecords
                 Forms\Components\TextInput::make('amount')
                     ->columnSpanFull()
                     ->prefix('$')
-                    ->minValue(fn($record) => ((float)$this->getOwnerRecord()->auctionBids()->max('amount')))
+                    ->minValue(fn($record) => (float)$this->getOwnerRecord()
+                        ->highestApprovedBidAmount())
                     ->mask(RawJs::make('$money($input)'))
-                    ->helperText('Min value: '. Number::currency($this->getOwnerRecord()->auctionBids()->max('amount')))
+                    ->helperText('Min value: '. Number::currency($this->getOwnerRecord()
+                        ->highestApprovedBidAmount()))
                     ->stripCharacters(',')
                     ->numeric()
                     ->required(),

@@ -106,7 +106,8 @@ class AuctionBidResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(isIndividual: true),
 
                 Tables\Columns\TextColumn::make('auction.title')
                     ->label('Auction')
@@ -121,6 +122,7 @@ class AuctionBidResource extends Resource
                             label: $state
                         );
                     })
+                    ->searchable(isIndividual: true)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('amount')
@@ -130,6 +132,7 @@ class AuctionBidResource extends Resource
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
+                    ->sortable()
                     ->color(fn($state) => match ($state) {
                         'PENDING' => 'warning',
                         'APPROVED' => 'success',

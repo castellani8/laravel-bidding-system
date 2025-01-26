@@ -15,10 +15,12 @@ use Filament\Infolists\Infolist;
 use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\HtmlString;
 
 class AuctionResource extends Resource
 {
@@ -113,9 +115,12 @@ class AuctionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->searchable(),
+                    ->sortable()
+                    ->searchable(isIndividual: true),
 
                 Tables\Columns\TextColumn::make('description')
+                    ->sortable()
+                    ->searchable(isIndividual: true)
                     ->wrap()
                     ->limit(25),
 
@@ -123,7 +128,8 @@ class AuctionResource extends Resource
                     ->money('USD')
                     ->prefix('$ ')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(isIndividual: true),
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
@@ -133,26 +139,54 @@ class AuctionResource extends Resource
                         'FINISHED' => 'danger'
                     })
                     ->sortable()
-                    ->searchable(),
+                    ->searchable(isIndividual: true),
 
-                Tables\Columns\TextColumn::make('auctionBids_max')
+                Tables\Columns\TextColumn::make('bids_max_amount')
+                    ->max('bids', 'amount')
+                    ->sortable()
+                    ->money('USD')
+                    ->prefix('$')
                     ->default('-')
                     ->alignCenter()
-//                    ->max('auctionBids', 'amount')
-                    ->default(fn($record) => $record->auctionBids()->max('amount') ?? '-')
-                    ->money('USD')
-                    ->prefix('$ ')
                     ->numeric(),
 
-                Tables\Columns\TextColumn::make('createdBy.name'),
-
                 Tables\Columns\TextColumn::make('ends_at')
+                    ->size(Tables\Columns\TextColumn\TextColumnSize::Small)
+                    ->description(function($record, $state) {
+                        $dateTime = $state->format('Y-m-d\TH:i:s');
+                        return new HtmlString('
+                            <span id="counter-'. $record->id .'"></span>
+                            <script>
+                            var countDownDate' . $record->id . ' = new Date("' . $dateTime . '").getTime();
+
+                            var x' . $record->id . ' = setInterval(function() {
+                                var now = new Date().getTime();
+                                var distance = countDownDate' . $record->id . ' - now;
+
+                                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                                document.getElementById("counter-'. $record->id .'").innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+
+                                if (distance < 0) {
+                                    clearInterval(x' . $record->id . ');
+                                    document.getElementById("counter-'. $record->id .'").innerHTML = "FINISHED";
+                                }
+                            }, 1000);
+                            </script>
+
+                        ');
+                    })
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(isIndividual: true),
 
                 Tables\Columns\TextColumn::make('createdBy.name')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(isIndividual: true),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -164,13 +198,10 @@ class AuctionResource extends Resource
             ->striped()
             ->defaultSort('status', 'asc')
             ->actions([
-//                Tables\Actions\ViewAction::make(),
-//                Tables\Actions\EditAction::make(),
+                //
             ])
             ->bulkActions([
-//                Tables\Actions\BulkActionGroup::make([
-//                    Tables\Actions\DeleteBulkAction::make(),
-//                ]),
+                //
             ]);
     }
 

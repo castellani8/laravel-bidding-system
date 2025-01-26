@@ -28,6 +28,7 @@ class AuctionBidHistoryResource extends Resource
     protected static ?string $navigationLabel = 'Bid History';
 
     protected static ?string $label = 'Bid History';
+    protected static ?string $pluralLabel = 'Bid History';
 
     protected static ?int $navigationSort = 3;
 
@@ -47,10 +48,6 @@ class AuctionBidHistoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
-                    ->sortable(),
-
                 Tables\Columns\TextColumn::make('auction.title')
                     ->label('Auction')
                     ->iconColor('primary')
@@ -73,6 +70,7 @@ class AuctionBidHistoryResource extends Resource
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
+                    ->sortable()
                     ->colors([
                         'warning' => 'PENDING',
                         'success' => 'APPROVED',
@@ -81,8 +79,7 @@ class AuctionBidHistoryResource extends Resource
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()

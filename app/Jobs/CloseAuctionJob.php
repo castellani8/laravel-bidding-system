@@ -37,12 +37,24 @@ class CloseAuctionJob implements ShouldQueue
             broadcast(new AuctionUpdated(['auction' => $this->auction]));
             $winnerAuctionBid = $this->auction->highestApprovedBid();
             Notification::make('auction-win')
-                ->title("The auction {$this->auction->id} has been closed and you are the winner!")
-                ->body("Please go to ''")
+                ->title("Congratulations! You won Auction #{$this->auction->id}")
+                ->body("You are the winner of Auction #{$this->auction->id}! Visit 'Participated Auctions' to claim your prize.")
                 ->success()
                 ->broadcast($winnerAuctionBid->user)
                 ->send()
                 ->sendToDatabase($winnerAuctionBid->user);
+
+            $participants = $this->auction->bidders;
+
+            foreach ($participants as $participant) {
+                Notification::make('auction-bid-finalized')
+                    ->title("Auction #{$this->auction->id} has ended!")
+                    ->body("The auction has been finalized. Congratulations to {$participant->name} for winning! Check the auction details for more information.")
+                    ->info()
+                    ->broadcast($participant)
+                    ->send()
+                    ->sendToDatabase($participant);
+            }
         }
     }
 }

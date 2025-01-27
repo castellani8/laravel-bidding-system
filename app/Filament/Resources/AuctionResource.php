@@ -142,7 +142,9 @@ class AuctionResource extends Resource
                     ->searchable(isIndividual: true),
 
                 Tables\Columns\TextColumn::make('bids_max_amount')
-                    ->max('bids', 'amount')
+                    ->max([
+                        'bids' => fn($query) => $query->where('status', 'APPROVED')
+                    ], 'amount')
                     ->sortable()
                     ->money('USD')
                     ->prefix('$')

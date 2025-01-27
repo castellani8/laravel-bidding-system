@@ -21,6 +21,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Number;
 
 class AuctionResource extends Resource
 {
@@ -75,12 +76,37 @@ class AuctionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('title')
-                    ->required(),
+                Forms\Components\Section::make([
 
-                Forms\Components\Textarea::make('description')
-                    ->required()
-                    ->columnSpanFull(),
+                    Forms\Components\TextInput::make('title')
+                        ->required(),
+
+                    Forms\Components\Select::make('status')
+                        ->searchable()
+                        ->options([
+                            'ACTIVE'   => 'Active',
+                            'INACTIVE' => 'Inactive',
+                            'FINISHED' => 'Finished',
+                        ])
+                        ->required(),
+
+                    Forms\Components\TextInput::make('start_price')
+                        ->columnSpan(1)
+                        ->prefix('$')
+                        ->mask(RawJs::make('$money($input)'))
+                        ->stripCharacters(',')
+                        ->numeric()
+                        ->required(),
+
+                    Forms\Components\DateTimePicker::make('ends_at')
+                        ->columnSpan(1)
+                        ->disabledOn('edit')
+                        ->required(),
+
+                    Forms\Components\Textarea::make('description')
+                        ->required()
+                        ->columnSpanFull(),
+                ])->columns(2),
 
                 Forms\Components\FileUpload::make('images')
                     ->multiple()
@@ -89,24 +115,9 @@ class AuctionResource extends Resource
                     ->required()
                     ->columnSpanFull(),
 
-                Forms\Components\TextInput::make('start_price')
+                Forms\Components\Hidden::make('created_by')
                     ->required()
-                    ->numeric(),
-
-                Forms\Components\Select::make('status')
-                    ->options([
-                        'ACTIVE'   => 'Active',
-                        'INACTIVE' => 'Inactive',
-                        'FINISHED' => 'Finished',
-                    ])
-                    ->required(),
-
-                Forms\Components\DateTimePicker::make('ends_at')
-                    ->required(),
-
-                Forms\Components\TextInput::make('created_by')
-                    ->required()
-                    ->numeric(),
+                    ->default(auth()->id()),
             ]);
     }
 

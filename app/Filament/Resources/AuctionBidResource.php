@@ -78,7 +78,9 @@ class AuctionBidResource extends Resource
                             'DECLINED' => 'Declined',
                         }),
 
-                ]),
+                ])
+                ->columns(3),
+
                 Section::make([
                     TextEntry::make('user.name')
                         ->label('User'),

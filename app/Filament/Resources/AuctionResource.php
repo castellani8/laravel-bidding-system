@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AuctionResource\Pages;
 use App\Filament\Resources\AuctionResource\RelationManagers;
 use App\Models\Auction;
-use Faker\Provider\Text;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\ImageEntry;
@@ -18,10 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Number;
 
 class AuctionResource extends Resource
 {
@@ -46,7 +42,6 @@ class AuctionResource extends Resource
                     TextEntry::make('description')
                         ->columnSpanFull()
                         ->size(TextEntry\TextEntrySize::Large),
-
                 ]),
 
                 Section::make([
@@ -63,7 +58,6 @@ class AuctionResource extends Resource
 
                     TextEntry::make('ends_at')
                         ->dateTime(),
-
                 ])
                 ->columns(2),
 
@@ -166,38 +160,11 @@ class AuctionResource extends Resource
 
                 Tables\Columns\TextColumn::make('ends_at')
                     ->size(Tables\Columns\TextColumn\TextColumnSize::Small)
-                    ->description(function($record, $state) {
-                        if ($record->status != 'ACTIVE') {
-                            return '';
-                        }
-
-                        $dateTime = $state->format('Y-m-d\TH:i:s');
-                        return new HtmlString('
-                            <span id="counter-'. $record->id .'"></span>
-                            <script>
-                            var countDownDate' . $record->id . ' = new Date("' . $dateTime . '").getTime();
-
-                            var x' . $record->id . ' = setInterval(function() {
-                                var now = new Date().getTime();
-                                var distance = countDownDate' . $record->id . ' - now;
-
-                                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                                document.getElementById("counter-'. $record->id .'").innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s";
-
-                                if (distance < 0) {
-                                    clearInterval(x' . $record->id . ');
-                                    document.getElementById("counter-'. $record->id .'").innerHTML = "FINISHED";
-                                }
-                            }, 1000);
-                            </script>
-
-                        ');
-                    })
                     ->dateTime()
+                    ->description(fn ($record) => new HtmlString(sprintf(
+                        '<span class="regressive-counter" data-end="%s">Carregando...</span>',
+                        $record->ends_at?->toIso8601String()
+                    )))
                     ->sortable()
                     ->searchable(isIndividual: true),
 

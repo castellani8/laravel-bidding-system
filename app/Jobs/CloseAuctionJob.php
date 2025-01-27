@@ -34,18 +34,19 @@ class CloseAuctionJob implements ShouldQueue
             $this->auction->status = 'FINISHED';
             $this->auction->save();
 
-            broadcast(new AuctionUpdated(['auction' => $this->auction]));
+//            broadcast(new AuctionUpdated(['auction' => $this->auction]));
             $winnerAuctionBid = $this->auction->highestApprovedBid();
-            Notification::make('auction-win')
-                ->title("Congratulations! You won Auction #{$this->auction->id}")
-                ->body("You are the winner of Auction #{$this->auction->id}! Visit 'Participated Auctions' to claim your prize.")
-                ->success()
-                ->broadcast($winnerAuctionBid->user)
-                ->send()
-                ->sendToDatabase($winnerAuctionBid->user);
+            if(!empty($winnerAuctionBid)) {
+                Notification::make('auction-win')
+                    ->title("Congratulations! You won Auction #{$this->auction->id}")
+                    ->body("You are the winner of Auction #{$this->auction->id}! Visit 'Participated Auctions' to claim your prize.")
+                    ->success()
+                    ->broadcast($winnerAuctionBid->user)
+                    ->send()
+                    ->sendToDatabase($winnerAuctionBid->user);
+            }
 
             $participants = $this->auction->bidders;
-
             foreach ($participants as $participant) {
                 Notification::make('auction-bid-finalized')
                     ->title("Auction #{$this->auction->id} has ended!")

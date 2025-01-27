@@ -68,6 +68,7 @@ class AuctionResource extends Resource
                 ->columns(2),
 
                 ImageEntry::make('images')
+                    ->disk('local')
                     ->columnSpanFull()
             ]);
     }

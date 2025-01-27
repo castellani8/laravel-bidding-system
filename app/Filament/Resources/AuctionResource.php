@@ -167,6 +167,10 @@ class AuctionResource extends Resource
                 Tables\Columns\TextColumn::make('ends_at')
                     ->size(Tables\Columns\TextColumn\TextColumnSize::Small)
                     ->description(function($record, $state) {
+                        if ($record->status != 'ACTIVE') {
+                            return '';
+                        }
+
                         $dateTime = $state->format('Y-m-d\TH:i:s');
                         return new HtmlString('
                             <span id="counter-'. $record->id .'"></span>

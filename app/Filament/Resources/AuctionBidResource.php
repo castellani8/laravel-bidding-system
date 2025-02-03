@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Helpers\ColumnHelper;
 use App\Filament\Resources\AuctionBidResource\Pages;
 use App\Filament\Resources\AuctionBidResource\RelationManagers;
 use App\Models\AuctionBid;
@@ -31,18 +32,6 @@ class AuctionBidResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static function goTo(string $link, string $label, ?string $tooltip = '')
-    {
-        return new HtmlString(Blade::render('filament::components.link', [
-            'color' => 'primary',
-            'tooltip' => $tooltip,
-            'href' => $link,
-            'target' => '_blank',
-            'slot' => $label,
-            'icon' => 'heroicon-o-arrow-top-right-on-square',
-        ]));
-    }
-
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -55,7 +44,7 @@ class AuctionBidResource extends Resource
                                     return '';
                                 }
 
-                                return self::goTo(
+                                return ColumnHelper::goTo(
                                     link: AuctionResource::getUrl()."/{$record->auction->id}",
                                     label: $state
                                 );
@@ -84,16 +73,6 @@ class AuctionBidResource extends Resource
                 Section::make([
                     TextEntry::make('user.name')
                         ->label('User'),
-//                        ->formatStateUsing(function ($record, $state) {
-//                            if(empty($state)) {
-//                                return '';
-//                            }
-//
-//                            return self::goTo(
-//                                link: AuctionResource::getUrl()."/{$record->auction->id}",
-//                                label: $state
-//                            );
-//                        }),
 
                     TextEntry::make('user.created_at')
                         ->label('User created at')
@@ -106,6 +85,10 @@ class AuctionBidResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->prefix('#')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('user.name')
                     ->numeric()
                     ->sortable()
@@ -119,7 +102,7 @@ class AuctionBidResource extends Resource
                             return '';
                         }
 
-                        return self::goTo(
+                        return ColumnHelper::goTo(
                             link: AuctionResource::getUrl()."/{$record->auction->id}",
                             label: $state
                         );

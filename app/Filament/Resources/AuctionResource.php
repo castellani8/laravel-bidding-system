@@ -30,17 +30,7 @@ class AuctionResource extends Resource
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
-    protected static function goTo(string $link, string $label, ?string $tooltip = '')
-    {
-        return new HtmlString(Blade::render('filament::components.link', [
-            'color' => 'primary',
-            'tooltip' => $tooltip,
-            'href' => $link,
-            'target' => '_blank',
-            'slot' => $label,
-            'icon' => 'heroicon-o-arrow-top-right-on-square',
-        ]));
-    }
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -133,6 +123,7 @@ class AuctionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
+                    ->prefix('#')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('title')

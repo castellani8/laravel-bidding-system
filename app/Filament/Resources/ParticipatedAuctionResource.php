@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Helpers\ColumnHelper;
 use App\Filament\Resources\ParticipatedAuctionResource\Pages;
 use App\Filament\Resources\ParticipatedAuctionResource\RelationManagers;
 use App\Models\Auction;
@@ -33,18 +34,6 @@ class ParticipatedAuctionResource extends Resource
             ]);
     }
 
-    protected static function goTo(string $link, string $label, ?string $tooltip = '')
-    {
-        return new HtmlString(Blade::render('filament::components.link', [
-            'color' => 'primary',
-            'tooltip' => $tooltip,
-            'href' => $link,
-            'target' => '_blank',
-            'slot' => $label,
-            'icon' => 'heroicon-o-arrow-top-right-on-square',
-        ]));
-    }
-
     public static function table(Table $table): Table
     {
         return $table
@@ -61,7 +50,7 @@ class ParticipatedAuctionResource extends Resource
                             return '';
                         }
 
-                        return self::goTo(
+                        return ColumnHelper::goTo(
                             link: AuctionResource::getUrl()."/{$record->id}",
                             label: Str::limit($state, 50)
                         );

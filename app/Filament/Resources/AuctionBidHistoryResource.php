@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Helpers\ColumnHelper;
 use App\Filament\Resources\AuctionBidHistoryResource\Pages;
 use App\Filament\Resources\AuctionBidHistoryResource\RelationManagers;
 use App\Models\AuctionBid;
@@ -32,22 +33,14 @@ class AuctionBidHistoryResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    protected static function goTo(string $link, string $label, ?string $tooltip = '')
-    {
-        return new HtmlString(Blade::render('filament::components.link', [
-            'color' => 'primary',
-            'tooltip' => $tooltip,
-            'href' => $link,
-            'target' => '_blank',
-            'slot' => $label,
-            'icon' => 'heroicon-o-arrow-top-right-on-square',
-        ]));
-    }
-
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->prefix('#')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('auction.title')
                     ->label('Auction')
                     ->iconColor('primary')
@@ -56,7 +49,7 @@ class AuctionBidHistoryResource extends Resource
                             return '';
                         }
 
-                        return self::goTo(
+                        return ColumnHelper::goTo(
                             link: AuctionResource::getUrl()."/{$record->auction->id}",
                             label: $state
                         );

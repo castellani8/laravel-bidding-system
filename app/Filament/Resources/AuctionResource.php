@@ -17,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 
 class AuctionResource extends Resource
@@ -29,6 +30,17 @@ class AuctionResource extends Resource
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
+    protected static function goTo(string $link, string $label, ?string $tooltip = '')
+    {
+        return new HtmlString(Blade::render('filament::components.link', [
+            'color' => 'primary',
+            'tooltip' => $tooltip,
+            'href' => $link,
+            'target' => '_blank',
+            'slot' => $label,
+            'icon' => 'heroicon-o-arrow-top-right-on-square',
+        ]));
+    }
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -120,6 +132,9 @@ class AuctionResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('title')
                     ->sortable()
                     ->searchable(isIndividual: true),

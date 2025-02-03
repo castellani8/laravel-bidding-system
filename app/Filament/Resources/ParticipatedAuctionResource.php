@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Helpers\ColumnHelper;
 use App\Filament\Resources\ParticipatedAuctionResource\Pages;
 use App\Filament\Resources\ParticipatedAuctionResource\RelationManagers;
+use App\Integrations\GatewayProvider\Asaas\Asaas;
 use App\Models\Auction;
 use App\Models\ParticipatedAuction;
 use Filament\Forms;
@@ -124,6 +125,9 @@ class ParticipatedAuctionResource extends Resource
                     ->hidden(fn($record) => !($record->status == 'FINISHED')
                         && !($record->highestApprovedBid()->id == auth()->id())
                     )
+                    ->action(function ($record) {
+                        //
+                    })
             ])
             ->bulkActions([
                 //

@@ -1,0 +1,62 @@
+version: '3.7'
+
+services:
+    nginx:
+        image: nginx:alpine-slim
+        container_name: nginx
+        depends_on:
+            - php
+        ports:
+            - "8005:80"
+        volumes:
+            - ./default.conf:/etc/nginx/conf.d/default.conf
+            - .:/var/www/html
+        networks:
+            - bidding
+
+    php:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: php
+        restart: always
+        volumes:
+            - .:/var/www/html
+        command: [ "supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf" ]
+        ports:
+            - "9000"
+        networks:
+            - bidding
+
+    redis:
+        image: "redis:alpine"
+        container_name: redis
+        command: redis-server --requirepass secret
+        ports:
+            - "6379"
+        networks:
+            - bidding
+
+    node:
+        image: "node:alpine"
+        container_name: node
+        command: sh -c "while true; do sleep 1000; done"
+        networks:
+            - bidding
+
+    pgsql:
+        image: "postgres:12-alpine"
+        container_name: pgsql
+        restart: always
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=secret
+            - POSTGRES_DB=whiteboard
+        ports:
+            - "5432"
+        networks:
+            - bidding
+
+networks:
+    bidding:
+        driver: bridge

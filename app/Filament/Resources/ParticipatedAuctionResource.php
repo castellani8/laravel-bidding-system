@@ -5,19 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Helpers\ColumnHelper;
 use App\Filament\Resources\ParticipatedAuctionResource\Pages;
 use App\Filament\Resources\ParticipatedAuctionResource\RelationManagers;
-use App\Integrations\Gateways\Asaas\Asaas;
 use App\Integrations\Gateways\Gateway;
 use App\Models\Auction;
-use App\Models\ParticipatedAuction;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
@@ -125,13 +120,11 @@ class ParticipatedAuctionResource extends Resource
                 Tables\Actions\Action::make('pay')
                     ->label('Pay')
                     ->hidden(fn($record) => !($record->status == 'FINISHED')
-                        && !($record->highestApprovedBid()->id == auth()->id())
+                        && !($record->highestApprovedBid()?->user->id == auth()->id())
                     )
                     ->action(function ($record) {
                         $asaas = (Gateway::instance());
-
                         try{
-
                             $customer = $asaas->createCustomer([
                                 'customer' => [
                                     'name'     => auth()->user()->name,

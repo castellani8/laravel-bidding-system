@@ -32,6 +32,8 @@ class AuctionBidResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    protected static ?string $navigationGroup = 'Management';
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist

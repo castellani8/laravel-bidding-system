@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\AuctionStatusEnum;
 use App\Filament\Helpers\ColumnHelper;
 use App\Filament\Resources\AuctionBidResource\Pages;
 use App\Filament\Resources\AuctionBidResource\RelationManagers;
@@ -145,7 +146,8 @@ class AuctionBidResource extends Resource
                 Tables\Actions\Action::make('approve')
                     ->label('Approve')
                     ->requiresConfirmation()
-                    ->visible(fn($record) => $record->auction->status == 'ACTIVE' && $record->status == 'PENDING')
+                    ->visible(fn($record) => $record->auction->status == AuctionStatusEnum::ACTIVE
+                        && $record->status == 'PENDING')
                     ->color('success')
                     ->icon('heroicon-o-check')
                     ->action(function ($record) {

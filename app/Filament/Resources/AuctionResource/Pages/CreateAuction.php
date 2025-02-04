@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuctionResource\Pages;
 
+use App\Enums\AuctionStatusEnum;
 use App\Filament\Resources\AuctionResource;
 use App\Jobs\CloseAuctionJob;
 use Filament\Actions;

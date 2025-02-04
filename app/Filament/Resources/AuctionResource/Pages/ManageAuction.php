@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuctionResource\Pages;
 
+use App\Enums\AuctionStatusEnum;
 use App\Filament\Resources\AuctionResource;
 use App\Models\AuctionBid;
 use Filament\Actions;
@@ -88,7 +89,7 @@ class ManageAuction extends ManageRelatedRecords
             ->defaultSort('amount', 'desc')
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->hidden(fn() => $this->getOwnerRecord()->status != 'ACTIVE')
+                    ->hidden(fn() => $this->getOwnerRecord()->status != AuctionStatusEnum::ACTIVE)
                     ->requiresConfirmation()
                     ->disabled($this->havePendingBid)
                     ->label('Make a bid')

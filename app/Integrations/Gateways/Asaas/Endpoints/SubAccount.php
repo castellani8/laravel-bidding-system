@@ -2,7 +2,7 @@
 
 namespace App\Integrations\Gateways\Asaas\Endpoints;
 
-use App\Enums\HttpMethod;
+use App\Enums\HttpMethodEnum;
 use App\Integrations\Gateways\Asaas\Enums\SubAccount\CompanyType;
 
 trait SubAccount
@@ -37,7 +37,7 @@ trait SubAccount
         );
 
         return $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: 'accounts',
             params: $params
         );
@@ -46,7 +46,7 @@ trait SubAccount
     public function getAllSubAccounts(): array
     {
         return $this->perform(
-            method: HttpMethod::GET,
+            method: HttpMethodEnum::GET,
             endpoint: 'accounts'
         );
     }
@@ -56,7 +56,7 @@ trait SubAccount
         $params = compact('id');
 
         return $this->perform(
-            method: HttpMethod::GET,
+            method: HttpMethodEnum::GET,
             endpoint: 'accounts',
             params: $params
         );

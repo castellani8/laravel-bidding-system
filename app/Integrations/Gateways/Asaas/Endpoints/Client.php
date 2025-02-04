@@ -2,7 +2,7 @@
 
 namespace App\Integrations\Gateways\Asaas\Endpoints;
 
-use App\Enums\HttpMethod;
+use App\Enums\HttpMethodEnum;
 use App\Integrations\Gateways\Asaas\Resources\AsaasCreateCustomerInGatewayResource;
 
 trait Client
@@ -10,7 +10,7 @@ trait Client
     public function getAllCustomers(): array
     {
         return $this->perform(
-            method: HttpMethod::GET,
+            method: HttpMethodEnum::GET,
             endpoint: 'customers',
         );
     }
@@ -61,7 +61,7 @@ trait Client
         );
 
         $response = $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: 'customers',
             params: $params
         );
@@ -78,7 +78,7 @@ trait Client
     public function showCustomer($clientId): array
     {
         return $this->perform(
-            method: HttpMethod::GET,
+            method: HttpMethodEnum::GET,
             endpoint: "customers/{$clientId}"
         );
     }
@@ -125,7 +125,7 @@ trait Client
         );
 
         return $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: "customers/{$clientId}",
             params: $params
         );
@@ -134,7 +134,7 @@ trait Client
     public function destroyCustomer($clientId): array
     {
         return $this->perform(
-            method: HttpMethod::DELETE,
+            method: HttpMethodEnum::DELETE,
             endpoint: "customers/{$clientId}"
         );
     }
@@ -142,7 +142,7 @@ trait Client
     public function restoreCustomer($clientId): array
     {
         return $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: "customers/{$clientId}/restore"
         );
     }

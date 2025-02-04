@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\AuctionStatusEnum;
 use App\Jobs\CloseAuctionJob;
 use App\Models\Auction;
 use Illuminate\Console\Command;
@@ -28,7 +29,7 @@ class CloseExpiredAuctions extends Command
     public function handle()
     {
         $expiredAuctions = Auction::query()
-            ->where('status', 'ACTIVE')
+            ->where('status', AuctionStatusEnum::ACTIVE)
             ->where('ends_at', '<', now())
             ->get();
 

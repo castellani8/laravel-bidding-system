@@ -2,7 +2,7 @@
 
 namespace App\Integrations\Gateways\Asaas\Endpoints;
 
-use App\Enums\HttpMethod;
+use App\Enums\HttpMethodEnum;
 use App\Integrations\Gateways\Asaas\Enums\Charge\BillingType;
 use App\Integrations\Gateways\Asaas\Objects\Callback;
 use App\Integrations\Gateways\Asaas\Objects\CreditCard;
@@ -54,7 +54,7 @@ trait Charge
         );
 
         return $this->perform(
-            method: HttpMethod::GET,
+            method: HttpMethodEnum::GET,
             endpoint: 'payments',
             params: $params
         );
@@ -63,7 +63,7 @@ trait Charge
     public function getPaymentApi($externalId): array
     {
         $response = $this->perform(
-            HttpMethod::GET,
+            HttpMethodEnum::GET,
             "payments/{$externalId}",
         );
 
@@ -73,7 +73,7 @@ trait Charge
     public function getPixQrCode($externalId): array
     {
         $response = $this->perform(
-            HttpMethod::GET,
+            HttpMethodEnum::GET,
             "payments/{$externalId}/pixQrCode",
         );
 
@@ -83,7 +83,7 @@ trait Charge
     public function getBilletBarcode($externalId, $paymentDetail): array
     {
         $response = $this->perform(
-            HttpMethod::GET,
+            HttpMethodEnum::GET,
             "payments/{$externalId}/identificationField",
         );
 
@@ -110,7 +110,7 @@ trait Charge
         );
 
         $response = $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: 'payments',
             params: $params
         );
@@ -163,7 +163,7 @@ trait Charge
         );
 
         $response = $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: 'payments',
             params: $params
         );
@@ -204,7 +204,7 @@ trait Charge
         );
 
         $response = $this->perform(
-            HttpMethod::POST,
+            HttpMethodEnum::POST,
             "payments/{$externalId}",
             $params
         );
@@ -224,7 +224,7 @@ trait Charge
         );
 
         return $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: 'creditCard/tokenize',
             params: $params
         );
@@ -243,7 +243,7 @@ trait Charge
         );
 
         $response = $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: "payments/{$id}/payWithCreditCard",
             params: $params
         );
@@ -254,7 +254,7 @@ trait Charge
     public function showCharge($id): array
     {
         $response = $this->perform(
-            method: HttpMethod::GET,
+            method: HttpMethodEnum::GET,
             endpoint: "payments/{$id}",
         );
 
@@ -264,7 +264,7 @@ trait Charge
     public function destroyCharge($id): array
     {
         return $this->perform(
-            method: HttpMethod::DELETE,
+            method: HttpMethodEnum::DELETE,
             endpoint: "payments/{$id}",
         );
     }
@@ -272,7 +272,7 @@ trait Charge
     public function restoreCharge($id): array
     {
         return $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: "payments/{$id}/restore",
         );
     }
@@ -285,7 +285,7 @@ trait Charge
         );
 
         return $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: "payments/{$id}/refund",
             params: $params
         );
@@ -294,7 +294,7 @@ trait Charge
     public function getBillOfExchangeNumber($id): array
     {
         return $this->perform(
-            method: HttpMethod::GET,
+            method: HttpMethodEnum::GET,
             endpoint: "payments/{$id}/identificationField",
         );
     }
@@ -317,7 +317,7 @@ trait Charge
         );
 
         $response = $this->perform(
-            method: HttpMethod::POST,
+            method: HttpMethodEnum::POST,
             endpoint: 'payments',
             params: $params
         );

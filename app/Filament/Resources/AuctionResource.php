@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\AuctionStatusEnum;
 use App\Filament\Resources\AuctionResource\Pages;
 use App\Filament\Resources\AuctionResource\RelationManagers;
 use App\Models\Auction;
@@ -51,12 +52,8 @@ class AuctionResource extends Resource
                         ->label('Start price')
                         ->money('USD'),
 
-                    TextEntry::make('status')
-                        ->formatStateUsing(fn($state) => match ($state) {
-                            'ACTIVE'   => 'Active',
-                            'INACTIVE' => 'Inactive',
-                            'FINISHED' => 'Finished',
-                        }),
+                    Forms\Components\Hidden::make('status')
+                        ->default(AuctionStatusEnum::ACTIVE),
 
                     TextEntry::make('ends_at')
                         ->dateTime(),
@@ -80,11 +77,7 @@ class AuctionResource extends Resource
 
                     Forms\Components\Select::make('status')
                         ->searchable()
-                        ->options([
-                            'ACTIVE'   => 'Active',
-                            'INACTIVE' => 'Inactive',
-                            'FINISHED' => 'Finished',
-                        ])
+                        ->options(AuctionStatusEnum::options())
                         ->required(),
 
                     Forms\Components\TextInput::make('start_price')
@@ -148,11 +141,7 @@ class AuctionResource extends Resource
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn($state) => match($state) {
-                        'ACTIVE' => 'success',
-                        'INACTIVE' => 'warning',
-                        'FINISHED' => 'danger'
-                    })
+                    ->color(fn($state) => AuctionStatusEnum::from($state)->getColor())
                     ->sortable()
                     ->searchable(isIndividual: true),
 

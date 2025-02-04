@@ -10,6 +10,7 @@ class EditAuction extends EditRecord
 {
     protected static string $resource = AuctionResource::class;
 
+
     protected function getHeaderActions(): array
     {
         return [

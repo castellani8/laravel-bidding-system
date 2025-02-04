@@ -2,7 +2,7 @@
 
 namespace App\Integrations\Gateways;
 
-use App\Enums\HttpMethod;
+use App\Enums\HttpMethodEnum;
 use App\Integrations\Gateways\Asaas\Asaas;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
@@ -45,7 +45,7 @@ abstract class Gateway implements GatewayInterface
         return $this;
     }
 
-    public function perform(HttpMethod $method, $endpoint, ?array $params = []): array
+    public function perform(HttpMethodEnum $method, $endpoint, ?array $params = []): array
     {
         $http = Http::withHeaders($this->headers)
             ->withoutVerifying()

@@ -21,17 +21,13 @@ class Asaas extends Gateway
 
     protected string $version = 'v3';
 
-    public function __construct(?GatewayModel $gateway = null)
+    public function __construct()
     {
-        $accessToken = is_null($gateway)
-            ? Config::get('checkout.gateways.asaas.token')
-            : $gateway->configuration['api_key'];
-
         $this->headers = [
-            'access_token' => $accessToken,
+            'access_token' => Config::get('asaas.access_token')
         ];
 
-        $this->baseUrl = Config::get('checkout.gateways.asaas.baseUrl');
+        $this->baseUrl = Config::get('asaas.base_url');
     }
 
     public function shouldCreateCustomerInGateway(): bool

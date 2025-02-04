@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'document' => '50126359814',
         ]);
 //        $user->assignRole('super_admin');
 

@@ -50,10 +50,10 @@ trait ChargeAction
         );
     }
 
-    public function processBilletPayment($data, $customer): array
+    public function processBilletPayment($data, $customerId): array
     {
         return $this->processBilletPaymentApi(
-            customer: $customer['customer']['external_id'],
+            customer: $customerId,
             billingType: BillingType::BOLETO,
             value: $data['payment']['value'],
             description: $data['payment']['description'],

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\AuctionResource\Pages;
 
 use App\Filament\Resources\AuctionResource;
+use App\Models\AuctionBid;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,14 +17,20 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Conditionable;
 
 class ManageAuction extends ManageRelatedRecords
 {
+    use Conditionable;
+    public float $minValue;
+
     protected static string $resource = AuctionResource::class;
 
     protected static string $relationship = 'auctionBids';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public bool $havePendingBid;
 
     public static function getNavigationLabel(): string
     {
@@ -32,16 +39,18 @@ class ManageAuction extends ManageRelatedRecords
 
     public function form(Form $form): Form
     {
+        $highestApprovedBid = $this->getOwnerRecord()->highestApprovedBidAmount();
+        $startPrice = $this->getOwnerRecord()->start_price;
+        $this->minValue = max($highestApprovedBid, $startPrice);
+
         return $form
             ->schema([
                 Forms\Components\TextInput::make('amount')
                     ->columnSpanFull()
                     ->prefix('$')
-                    ->minValue(fn($record) => (float)$this->getOwnerRecord()
-                        ->highestApprovedBidAmount())
+                    ->minValue(fn($record) => (float)$this->minValue)
                     ->mask(RawJs::make('$money($input)'))
-                    ->helperText('Min value: '. Number::currency($this->getOwnerRecord()
-                        ->highestApprovedBidAmount()))
+                    ->helperText('Min value: '. Number::currency($this->minValue))
                     ->stripCharacters(',')
                     ->numeric()
                     ->required(),
@@ -53,6 +62,12 @@ class ManageAuction extends ManageRelatedRecords
 
     public function table(Table $table): Table
     {
+        $this->havePendingBid = AuctionBid::query()
+            ->where('user_id', auth()->id())
+            ->where('auction_id', $this->getOwnerRecord()->id)
+            ->where('status', 'PENDING')
+            ->exists();
+
         return $table
             ->recordTitleAttribute('amount')
             ->columns([
@@ -75,9 +90,23 @@ class ManageAuction extends ManageRelatedRecords
                 Tables\Actions\CreateAction::make()
                     ->hidden(fn() => $this->getOwnerRecord()->status != 'ACTIVE')
                     ->requiresConfirmation()
+                    ->disabled($this->havePendingBid)
                     ->label('Make a bid')
-                    ->icon('heroicon-o-currency-dollar')
-                    ->color('success')
+                    ->icon(function (){
+                        return $this->when($this->havePendingBid, function () {
+                                return 'heroicon-o-lock-closed';
+                            }, function () {
+                                return 'heroicon-o-currency-dollar';
+                            })
+                        ;
+                    })
+                    ->color(function (){
+                        return $this->when($this->havePendingBid, function () {
+                            return 'warning';
+                        }, function () {
+                            return 'success';
+                        });
+                    })
                     ->createAnother(false)
                     ->successNotification(
                         Notification::make('bid-created')

@@ -5,11 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Helpers\ColumnHelper;
 use App\Filament\Resources\ParticipatedAuctionResource\Pages;
 use App\Filament\Resources\ParticipatedAuctionResource\RelationManagers;
-use App\Integrations\GatewayProvider\Asaas\Asaas;
+use App\Integrations\Gateways\Asaas\Asaas;
+use App\Integrations\Gateways\Gateway;
 use App\Models\Auction;
 use App\Models\ParticipatedAuction;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -126,7 +128,37 @@ class ParticipatedAuctionResource extends Resource
                         && !($record->highestApprovedBid()->id == auth()->id())
                     )
                     ->action(function ($record) {
-                        //
+                        $asaas = (Gateway::instance());
+
+                        try{
+
+                            $customer = $asaas->createCustomer([
+                                'customer' => [
+                                    'name'     => auth()->user()->name,
+                                    'document' => '50126359814',
+                                    'email'    => auth()->user()->email
+                                ]
+                            ]);
+
+                            $response = $asaas->processBilletPayment([
+                                'payment' => [
+                                    'value'       => $record->highestApprovedBid()->amount,
+                                    'description' => $record->title,
+                                    'dueDate'     => now()->addDays(3),
+                                    'externalReference' => 'payment-'.now()->timestamp,
+                                ],
+                            ], $customer['customer']['external_id']);
+
+                            return $response['gateway_payment_detail']['billetUrl'];
+                        } catch (\Exception $exception) {
+                            error_log($exception->getMessage());
+                            Notification::make('gateway_error')
+                                ->danger()
+                                ->title('There was an error processing your payment.')
+                                ->body('Please try again later or enter in contact with us.')
+                                ->broadcast(auth()->user())
+                                ->sendToDatabase(auth()->user());
+                        }
                     })
             ])
             ->bulkActions([

@@ -2,7 +2,7 @@
 
 namespace App\Integrations\Gateways\Asaas\Resources;
 
-use App\Traits\Gateways\Asaas\AsaasFormatErrorsTrait;
+use App\Integrations\Gateways\Asaas\Traits\AsaasFormatErrorsTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

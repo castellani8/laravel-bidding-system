@@ -3,7 +3,7 @@
 namespace App\Integrations\Gateways;
 
 use App\Enums\HttpMethod;
-use App\Models\Gateway as GatewayModel;
+use App\Integrations\Gateways\Asaas\Asaas;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -26,16 +26,13 @@ abstract class Gateway implements GatewayInterface
 
     protected ?array $formatted = [];
 
-    private static GatewayModel $gateway;
 
-    public static function instance(GatewayModel $gateway)
+    public static function instance(): Asaas
     {
-        self::$gateway = $gateway;
-        $gatewayName   = Str::of($gateway->gateway_type_enum->name)->lower()->camel()->ucfirst();
-        $className     = "App\\Integrations\\Gateways\\$gatewayName\\$gatewayName";
+        $className = "App\\Integrations\\Gateways\\Asaas\\Asaas";
 
         if (class_exists($className)) {
-            return new $className($gateway);
+            return new $className();
         }
 
         throw new RuntimeException("Gateway {$className} not found.");
@@ -64,11 +61,6 @@ abstract class Gateway implements GatewayInterface
             'status_code' => $http->getStatusCode(),
             'body'        => json_decode($http->body(), true),
         ];
-    }
-
-    public function getModel(): GatewayModel
-    {
-        return self::$gateway;
     }
 
     public function getVersion(): string

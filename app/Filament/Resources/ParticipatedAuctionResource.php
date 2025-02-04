@@ -20,6 +20,8 @@ class ParticipatedAuctionResource extends Resource
 {
     protected static ?string $model = Auction::class;
 
+    protected static ?string $label = 'Participated Auctions';
+
     protected static ?string $navigationLabel = 'Participated Auctions';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

@@ -31,6 +31,17 @@ class AuctionResource extends Resource
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'success';
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return Auction::query()
+            ->where('status', AuctionStatusEnum::ACTIVE)
+            ->count();
+    }
 
     public static function infolist(Infolist $infolist): Infolist
     {

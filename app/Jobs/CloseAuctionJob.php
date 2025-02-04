@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\AuctionStatusEnum;
 use App\Events\AuctionUpdated;
 use App\Models\Auction;
 use Filament\Notifications\Notification;
@@ -30,8 +31,8 @@ class CloseAuctionJob implements ShouldQueue
      */
     public function handle(): void
     {
-        if($this->auction->status == 'ACTIVE') {
-            $this->auction->status = 'FINISHED';
+        if($this->auction->status == AuctionStatusEnum::ACTIVE) {
+            $this->auction->status = AuctionStatusEnum::FINISHED;
             $this->auction->save();
 
 //            broadcast(new AuctionUpdated(['auction' => $this->auction]));
@@ -47,15 +48,13 @@ class CloseAuctionJob implements ShouldQueue
             }
 
             $participants = $this->auction->bidders;
-            foreach ($participants as $participant) {
-                Notification::make('auction-bid-finalized')
-                    ->title("Auction #{$this->auction->id} has ended!")
-                    ->body("The auction has been finalized. Congratulations to {$participant->name} for winning! Check the auction details for more information.")
-                    ->info()
-                    ->broadcast($participant)
-                    ->send()
-                    ->sendToDatabase($participant);
-            }
+            Notification::make('auction-bid-finalized')
+                ->title("Auction #{$this->auction->id} has ended!")
+                ->body("The auction has been finalized. Congratulations to {$winnerAuctionBid->user->name} for winning! Check the auction details for more information.")
+                ->info()
+                ->broadcast($participants)
+                ->send()
+                ->sendToDatabase($participants);
         }
     }
 }

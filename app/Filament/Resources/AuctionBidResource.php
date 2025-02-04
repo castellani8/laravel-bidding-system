@@ -2,13 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\AuctionBidStatusEnum;
 use App\Enums\AuctionStatusEnum;
 use App\Filament\Helpers\ColumnHelper;
 use App\Filament\Resources\AuctionBidResource\Pages;
 use App\Filament\Resources\AuctionBidResource\RelationManagers;
 use App\Models\AuctionBid;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -16,11 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
 
 class AuctionBidResource extends Resource
@@ -59,16 +54,8 @@ class AuctionBidResource extends Resource
 
                     TextEntry::make('status')
                         ->badge()
-                        ->color(fn($state) => match ($state) {
-                            'PENDING'  => 'warning',
-                            'APPROVED' => 'success',
-                            'DECLINED' => 'danger',
-                        })
-                        ->formatStateUsing(fn($state) => match ($state) {
-                            'PENDING'  => 'Pending',
-                            'APPROVED' => 'Approved',
-                            'DECLINED' => 'Declined',
-                        }),
+                        ->color(fn($state) => AuctionBidStatusEnum::from($state)->getColor())
+                        ->formatStateUsing(fn($state) => AuctionBidStatusEnum::from($state)->getLabel()),
 
                 ])
                 ->columns(3),
@@ -121,11 +108,7 @@ class AuctionBidResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->sortable()
-                    ->color(fn($state) => match ($state) {
-                        'PENDING' => 'warning',
-                        'APPROVED' => 'success',
-                        'DECLINED' => 'danger',
-                    }),
+                    ->color(fn($state) => AuctionBidStatusEnum::from($state)->getColor()),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -147,25 +130,28 @@ class AuctionBidResource extends Resource
                     ->label('Approve')
                     ->requiresConfirmation()
                     ->visible(fn($record) => $record->auction->status == AuctionStatusEnum::ACTIVE
-                        && $record->status == 'PENDING')
+                        && $record->status == AuctionBidStatusEnum::PENDING)
                     ->color('success')
                     ->icon('heroicon-o-check')
                     ->action(function ($record) {
 
                         DB::beginTransaction();
                         try{
-                            $record->status = 'APPROVED';
+                            $record->status = AuctionBidStatusEnum::APPROVED;
                             $record->save();
 
                             $auctionBids = AuctionBid::query()
                                 ->where('id', '!=', $record->id)
                                 ->where('auction_id', $record->auction->id)
                                 ->where('amount', '<=', $record->amount)
-                                ->whereIn('status', ['PENDING', 'APPROVED'])
+                                ->whereIn('status', [
+                                    AuctionBidStatusEnum::PENDING,
+                                    AuctionBidStatusEnum::APPROVED
+                                ])
                                 ->get();
 
                             foreach ($auctionBids as $auctionBid) {
-                                $auctionBid->status = 'DECLINED';
+                                $auctionBid->status = AuctionBidStatusEnum::DECLINED;
                                 $auctionBid->save();
 
                                 Notification::make('auction-bid-declined')
@@ -195,11 +181,11 @@ class AuctionBidResource extends Resource
                 Tables\Actions\Action::make('decline')
                     ->label('Decline')
                     ->requiresConfirmation()
-                    ->visible(fn($record) => $record->status == 'PENDING')
+                    ->visible(fn($record) => $record->status == AuctionBidStatusEnum::PENDING)
                     ->color('danger')
                     ->icon('heroicon-o-x-mark')
                     ->action(function ($record) {
-                        $record->status = 'DECLINED';
+                        $record->status = AuctionBidStatusEnum::DECLINED;
                         $record->save();
 
                         Notification::make('auction-bid-declined')
